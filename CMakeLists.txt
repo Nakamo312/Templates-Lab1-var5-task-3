@@ -16,15 +16,17 @@ if(MSVC)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
     endif()
 endif()
-
+include(FetchContent)
+FetchContent_Declare(googletest URL https://github.com/google/googletest/archive/6b63c98ac43efc992122f1da12aaf0a0e0658206.zip)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
 
 # Объявляем библиотеку
-add_library(BrokenLine-v1 SHARED
-    "include/BrokenLine.h"
-    "src/BrokenLine.cc"
+add_library(PolyLine-v1 INTERFACE "include/PolyLine.h")
+target_include_directories(PolyLine-v1 INTERFACE "include")
 
-)
-target_include_directories(BrokenLine-v1 PUBLIC "include")
+add_executable(PolyLine-v1-main  "App/main.cc" )
+target_link_libraries(PolyLine-v1-main PolyLine-v1)
 
-add_executable(BrokenLine-v1-main  "App/main.cc" )
-target_link_libraries(BrokenLine-v1-main BrokenLine-v1)
+add_executable(PolyLine-v1-tests "test/PolyLine_test.cc")
+target_link_libraries(PolyLine-v1-tests PolyLine-v1 GTest::gtest_main)
