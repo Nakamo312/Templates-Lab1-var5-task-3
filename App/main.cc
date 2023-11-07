@@ -101,6 +101,7 @@ int main()
 	letter[5] = Point<int>(2, 0);
 	letter[6] = Point<int>(2, 1);
 	cout << letter;
+
 	//--------------------------------------------------------------
 	return 0;
 

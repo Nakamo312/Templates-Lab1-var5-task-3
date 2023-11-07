@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdexcept>
+#include <type_traits>
 namespace Line
 {
 	template<typename T>
@@ -48,7 +49,8 @@ namespace Line
 			srand(time(NULL));			
 			_size = amount;
 			_points = new Point<T>[_size];
-			if (typeid(T()) == typeid(int()))
+
+			if constexpr (std::is_integral<T>::value) 
 			{
 				for (int i = 0; i < _size; ++i)
 				{
@@ -67,11 +69,12 @@ namespace Line
 			}
 		}
 
+
 		Point<T>& operator[](const size_t index)
 		{
 			if (index >= size() || index < 0)
 			{
-				throw std::runtime_error("PolyLine::operator[]  invalid index");
+				throw std::out_of_range("PolyLine::operator[]  invalid index");
 			}
 			return _points[index];
 		}
@@ -80,7 +83,7 @@ namespace Line
 		{
 			if (index >= size() || index < 0)
 			{
-				throw std::runtime_error("PolyLine::operator[]  invalid index");
+				throw std::out_of_range("PolyLine::operator[]  invalid index");
 			}
 			return _points[index];
 		}
@@ -95,15 +98,8 @@ namespace Line
 		{
 			size_t size1 = _size;
 			size_t size2 = other.size();
-			PolyLine<T> new_line = PolyLine(size1 + size2);
-			for (int i = 0; i < size1; ++i)
-			{
-				new_line[i] = _points[i];
-			};
-			for (int i = size1; i < new_line.size(); ++i)
-			{
-				new_line[i] = other[i - size1];
-			}
+			PolyLine<T> new_line = PolyLine(*this);
+			new_line += other;
 			return	new_line;
 		}
 		friend PolyLine<T> operator+(const Point<T>& point, const PolyLine<T>& line)
@@ -136,27 +132,50 @@ namespace Line
 		
 		PolyLine<T>& operator+=(const PolyLine<T>& other)
 		{
-			PolyLine<T> copy(*this);
-			PolyLine<T> newline = copy + other;
-			
-			*this = newline;
+			size_t tmp_size = _size;
+			_size = _size + other._size;
+			Point<T>* copy = _points;
+			_points = new Point<T>[_size];
+			for (int i = 0; i < _size; ++i)
+			{
+				if (i < tmp_size)
+				{
+					_points[i] = copy[i];
+				}
+				else
+				{
+					_points[i] = other[i - tmp_size];
+				}
+			}
 			return *this;
 		}
 		PolyLine<T>& operator+=(const Point<T>& point)
 		{
-			PolyLine<T> newline = *this + point;
-			*this = newline;
+			_size = _size + 1;
+			Point<T>* copy = _points;
+			_points = new Point<T>[_size];
+			for (int i = 0; i < _size; ++i)
+			{
+				if (i < _size - 1)
+				{
+					_points[i] = copy[i];
+				}
+				else
+				{
+					_points[i] = point;
+				}
+			}
 			return *this;
 		}
-		double length(size_t index1, size_t index2)
+		double length(size_t index1, size_t index2) const
 		{
 			if (index1 >= size() || index1 < 0)
 			{
-				throw std::runtime_error("PolyLine::operator[]  invalid index");
+				throw std::out_of_range("PolyLine::operator[]  invalid index");
 			}
 			if (index2 >= size() || index2 < 0)
 			{
-				throw std::runtime_error("PolyLine::operator[]  invalid index");
+				throw std::out_of_range("PolyLine::operator[]  invalid index");
 			}
 			double len = 0;
 			for (int i = index1; i <= index2-1; ++i)
@@ -186,4 +205,5 @@ namespace Line
 		}
 		return out;
 	}
+
 }
